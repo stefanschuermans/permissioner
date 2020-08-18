@@ -1,10 +1,11 @@
 #ifndef TREE_H
 #define TREE_H
 
+#include <permissioner/Group.h>
 #include <permissioner/Permissions.h>
+#include <permissioner/User.h>
 
 #include <boost/filesystem.hpp>
-#include <boost/optional.hpp>
 #include <string>
 
 /// directory tree configuration
@@ -18,8 +19,8 @@ public:
   void parseParams(std::string const &paramStr);
 
 protected:
-  boost::optional<std::string> user;
-  boost::optional<std::string> group;
+  User user;
+  Group group;
   Permissions permissions;
   boost::filesystem::path root;
 };

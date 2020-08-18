@@ -1,5 +1,7 @@
 #include <permissioner/Permissions.h>
 
+#include <sstream>
+#include <stdexcept>
 #include <string>
 
 void Permissions::parseParams(std::string const &paramStr) {
@@ -65,6 +67,13 @@ void Permissions::parseParams(std::string const &paramStr) {
     case 'X':
       whatCond |= flagExecute;
       break;
+    default:
+      {
+        std::stringstream msg;
+        msg << "invalid character \"" << c << "\" in permission string \""
+            << paramStr << "\"";
+        throw std::runtime_error(msg.str());
+      }
     }
   }
 }

@@ -1,10 +1,11 @@
 #include <permissioner/Tree.h>
 
+#include <permissioner/Group.h>
 #include <permissioner/Permissions.h>
+#include <permissioner/User.h>
 #include <permissioner/StringUtils.h>
 
 #include <boost/filesystem.hpp>
-#include <boost/optional.hpp>
 #include <sstream>
 #include <stdexcept>
 #include <string>
@@ -25,23 +26,32 @@ void Tree::parseParams(std::string const &paramStr) {
     throw std::runtime_error(msg.str());
   }
 
-  if (userStr == "-") {
-    user = boost::none;
-  } else {
-    user = userStr;
+  try {
+    user.parseUserName(userStr);
+  } catch (std::exception const & e) {
+    std::stringstream msg;
+    msg << "invalid <user> field \"" << userStr << "\" in \""
+        << paramStr << "\": " << e.what();
+    throw std::runtime_error(msg.str());
   }
-  if (groupStr == "-") {
-    group = boost::none;
-  } else {
-    group = groupStr;
+
+  try {
+    group.parseGroupName(groupStr);
+  } catch (std::exception const & e) {
+    std::stringstream msg;
+    msg << "invalid <group> field \"" << groupStr << "\" in \""
+        << paramStr << "\": " << e.what();
+    throw std::runtime_error(msg.str());
   }
+
   try {
     permissions.parseParams(permissionsStr);
   } catch (std::exception const & e) {
     std::stringstream msg;
-    msg << "invalid <permissions> field in \"" << paramStr << "\": "
-        << e.what();
+    msg << "invalid <permissions> field \"" << permissionsStr << "\" in \""
+        << paramStr << "\": " << e.what();
     throw std::runtime_error(msg.str());
   }
+
   root = rootStr;
 }
