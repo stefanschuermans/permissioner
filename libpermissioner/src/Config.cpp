@@ -1,7 +1,7 @@
-#include "Config.h"
-#include "StringUtils.h"
+#include <permissioner/Config.h>
+#include <permissioner/StringUtils.h>
 
-#include "Tree.h"
+#include <permissioner/Tree.h>
 
 #include <boost/filesystem.hpp>
 #include <fstream>

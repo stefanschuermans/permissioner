@@ -1,7 +1,7 @@
 #ifndef TREE_H
 #define TREE_H
 
-#include "Permissions.h"
+#include <permissioner/Permissions.h>
 
 #include <boost/filesystem.hpp>
 #include <boost/optional.hpp>

@@ -1,4 +1,4 @@
-#include "Config.h"
+#include <permissioner/Config.h>
 
 #include <cstdlib>
 

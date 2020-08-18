@@ -27,5 +27,6 @@ add_custom_target(
   exports
 )
 
+add_subdirectory(libpermissioner)
 add_subdirectory(permissionerd)
 add_subdirectory(tests)

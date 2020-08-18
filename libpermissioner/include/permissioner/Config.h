@@ -1,7 +1,7 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
-#include "Tree.h"
+#include <permissioner/Tree.h>
 
 #include <boost/filesystem.hpp>
 #include <map>
