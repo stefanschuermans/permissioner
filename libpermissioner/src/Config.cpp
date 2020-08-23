@@ -29,7 +29,7 @@ void Config::parseFile(std::string const &configFileName) {
     if (typeStr == "#") {
       continue; // comment line -> ignore
     }
-    // actual consfiguration lines
+    // actual configuration lines
     if (typeStr == "tree") {
       Tree tree;
       tree.parseParams(line.substr(pos));

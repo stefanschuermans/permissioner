@@ -53,7 +53,14 @@ void Tree::parseParams(std::string const &paramStr) {
     throw std::runtime_error(msg.str());
   }
 
-  root = rootStr;
+  try {
+    root = boost::filesystem::canonical(rootStr);
+  } catch (std::exception const & e) {
+    std::stringstream msg;
+    msg << "invalid <root> field \"" << rootStr << "\" in \""
+        << paramStr << "\": " << e.what();
+    throw std::runtime_error(msg.str());
+  }
 }
 
 User const & Tree::getUser() const {
