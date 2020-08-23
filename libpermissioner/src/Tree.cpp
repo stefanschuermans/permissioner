@@ -55,3 +55,19 @@ void Tree::parseParams(std::string const &paramStr) {
 
   root = rootStr;
 }
+
+User const & Tree::getUser() const {
+  return user;
+}
+
+Group const & Tree::getGroup() const {
+  return group;
+}
+
+Permissions const & Tree::getPermissions() const {
+  return permissions;
+}
+
+boost::filesystem::path const & Tree::getRoot() const {
+  return root;
+}

@@ -33,6 +33,7 @@ void Config::parseFile(std::string const &configFileName) {
     if (typeStr == "tree") {
       Tree tree;
       tree.parseParams(line.substr(pos));
+      trees[tree.getRoot()] = tree;
       continue;
     }
     // unknown configuration line
@@ -40,4 +41,8 @@ void Config::parseFile(std::string const &configFileName) {
     msg << "unknown configuration type \"" << typeStr << "\"";
     throw std::runtime_error(msg.str());
   }
+}
+
+Config::TreeMap const & Config::getTrees() const {
+  return trees;
 }

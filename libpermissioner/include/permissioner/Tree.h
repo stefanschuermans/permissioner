@@ -18,6 +18,18 @@ public:
    */
   void parseParams(std::string const &paramStr);
 
+  /// get user
+  User const & getUser() const;
+
+  /// get group
+  Group const & getGroup() const;
+
+  /// get permissions
+  Permissions const & getPermissions() const;
+
+  /// get root path
+  boost::filesystem::path const & getRoot() const;
+
 protected:
   User user;
   Group group;
