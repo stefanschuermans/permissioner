@@ -1,6 +1,7 @@
 #ifndef PERMISSIONS_H
 #define PERMISSIONS_H
 
+#include <boost/filesystem.hpp>
 #include <cstdint>
 #include <string>
 
@@ -22,6 +23,16 @@ public:
    * @throws std::exception if something goes wrong
    */
   void parseParams(std::string const &paramStr);
+
+  /**
+   * @brief apply paermissions to file or directory
+   * @param[in] path path to file or directory
+   */
+  void apply(boost::filesystem::path const &path) const;
+
+protected:
+  /// convert flags into boost filesystem permissions
+  static boost::filesystem::perms flags2perms(Flags flags);
 
 protected:
   Flags set = 0;       ///< permissions to set

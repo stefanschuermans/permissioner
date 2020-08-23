@@ -9,6 +9,7 @@
 #include <sstream>
 #include <stdexcept>
 #include <string>
+#include <unistd.h>
 #include <vector>
 
 void Tree::parseParams(std::string const &paramStr) {
@@ -25,6 +26,7 @@ void Tree::parseParams(std::string const &paramStr) {
     msg << "<root> field missing in \"" << paramStr << "\"";
     throw std::runtime_error(msg.str());
   }
+  rootStr = paramStr.substr(pos);
 
   try {
     user.parseUserName(userStr);
@@ -77,4 +79,43 @@ Permissions const & Tree::getPermissions() const {
 
 boost::filesystem::path const & Tree::getRoot() const {
   return root;
+}
+
+void Tree::setPermissions(TreeMap const &exclude) const {
+  setPermissionsInternal(root, exclude);
+}
+
+void Tree::setPermissionsInternal(boost::filesystem::path const &path,
+                                  TreeMap const &exclude) const {
+  try {
+    if (boost::filesystem::is_regular_file(path)) {
+      setPermissionsOne(path);
+    } else if (boost::filesystem::is_directory(path)) {
+      setPermissionsOne(path);
+      for (boost::filesystem::directory_entry entry :
+           boost::filesystem::directory_iterator(path)) {
+        if (exclude.find(entry) != exclude.end()) {
+          continue; // other tree -> skip here
+        }
+        setPermissionsInternal(entry, exclude); // recurse
+      }
+    }
+  } catch (boost::filesystem::filesystem_error const & e) {
+    // ignore filesystem errors for now, as this runs in a daemon in background
+    (void)e;
+  }
+}
+
+void Tree::setPermissionsOne(boost::filesystem::path const &path) const {
+  // change permissions
+  try {
+    permissions.apply(path);
+  } catch (boost::filesystem::filesystem_error const & e) {
+    // ignore filesystem errors for now, as this runs in a daemon in background
+    (void)e;
+  }
+
+  // change owner/group
+  lchown(path.string().c_str(), user.getUid(), group.getGid());
+  // ignore error for now, as this runs in a daemon in background
 }

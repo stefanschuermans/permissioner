@@ -10,9 +10,6 @@
 /// configuration file
 class Config {
 public:
-  /// map of trees
-  typedef std::map<boost::filesystem::path, Tree> TreeMap;
-
   /**
    * @brief parse configuration file
    * @param[in] configFileName name of configuation file
@@ -22,6 +19,11 @@ public:
 
   /// return trees
   TreeMap const & getTrees() const;
+
+  /**
+   * @brief set owners and permissions of files in trees
+   */
+  void setPermissions() const;
 
 protected:
   TreeMap trees;

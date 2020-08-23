@@ -13,6 +13,7 @@ add_test(
   NAME
   testConfig
   COMMAND
-  ./testConfig
-  ${CMAKE_CURRENT_SOURCE_DIR}/test.cfg
+  ${CMAKE_CURRENT_BINARY_DIR}/testConfig test.cfg
+  WORKING_DIRECTORY
+  ${CMAKE_CURRENT_SOURCE_DIR}
 )

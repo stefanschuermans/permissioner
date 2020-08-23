@@ -43,6 +43,13 @@ void Config::parseFile(std::string const &configFileName) {
   }
 }
 
-Config::TreeMap const & Config::getTrees() const {
+TreeMap const & Config::getTrees() const {
   return trees;
+}
+
+void Config::setPermissions() const {
+  for (auto const & path_tree : trees) {
+    Tree const & tree = path_tree.second;
+    tree.setPermissions(trees); // exclude all other trees
+  }
 }

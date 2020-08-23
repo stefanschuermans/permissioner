@@ -1,5 +1,6 @@
 #include <permissioner/Permissions.h>
 
+#include <boost/filesystem.hpp>
 #include <sstream>
 #include <stdexcept>
 #include <string>
@@ -77,3 +78,45 @@ void Permissions::parseParams(std::string const &paramStr) {
     }
   }
 }
+
+void Permissions::apply(boost::filesystem::path const &path) const {
+  // only process regular files and directories (especially no symlinks)
+  if (! boost::filesystem::is_regular_file(path) &&
+      ! boost::filesystem::is_directory(path)) {
+    return;
+  }
+
+  // get permissions
+  boost::filesystem::file_status st = boost::filesystem::status(path);
+  boost::filesystem::perms perms = st.permissions();
+
+  // compute updated permissions
+  Flags doSet = set, doClear = clear;
+  if (perms & boost::filesystem::perms::owner_exe) {
+    doSet |= setCond;
+    doClear |= clearCond;
+  }
+  perms &= boost::filesystem::perms::all_all ^ flags2perms(doClear);
+  perms |= flags2perms(doSet);
+
+  // set new permissions if they changed
+  if (perms != st.permissions()) {
+    boost::filesystem::permissions(path, perms);
+  }
+}
+
+boost::filesystem::perms Permissions::flags2perms(Flags flags) {
+  using fsp = boost::filesystem::perms;
+  fsp perms = fsp::no_perms;
+  if (flags & (flagUser * flagRead)) { perms |= fsp::owner_read; }
+  if (flags & (flagUser * flagWrite)) { perms |= fsp::owner_write; }
+  if (flags & (flagUser * flagExecute)) { perms |= fsp::owner_exe; }
+  if (flags & (flagGroup * flagRead)) { perms |= fsp::group_read; }
+  if (flags & (flagGroup * flagWrite)) { perms |= fsp::group_write; }
+  if (flags & (flagGroup * flagExecute)) { perms |= fsp::group_exe; }
+  if (flags & (flagOther * flagRead)) { perms |= fsp::others_read; }
+  if (flags & (flagOther * flagWrite)) { perms |= fsp::others_write; }
+  if (flags & (flagOther * flagExecute)) { perms |= fsp::others_exe; }
+  return perms;
+}
+

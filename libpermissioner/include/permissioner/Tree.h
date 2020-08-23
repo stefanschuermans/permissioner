@@ -6,7 +6,11 @@
 #include <permissioner/User.h>
 
 #include <boost/filesystem.hpp>
+#include <map>
 #include <string>
+
+/// map of trees
+typedef std::map<boost::filesystem::path, class Tree> TreeMap;
 
 /// directory tree configuration
 class Tree {
@@ -29,6 +33,27 @@ public:
 
   /// get root path
   boost::filesystem::path const & getRoot() const;
+
+  /**
+   * @brief set owners and permissions of files in tree
+   * @param[in] exclude map of other trees that shall be excluded
+   */
+  void setPermissions(TreeMap const &exclude) const;
+
+protected:
+  /**
+   * @brief set owners and permissions of files in path and subtrees
+   * @param[in] path path to top of directory tree for which to set owner/perms
+   * @param[in] exclude map of other trees that shall be excluded
+   */
+  void setPermissionsInternal(boost::filesystem::path const &path,
+                              TreeMap const &exclude) const;
+
+  /**
+   * @brief set owners and permissions of one file or directory
+   * @param[in] path path to file or directory
+   */
+  void setPermissionsOne(boost::filesystem::path const &path) const;
 
 protected:
   User user;
