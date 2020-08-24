@@ -1,5 +1,6 @@
 #include <permissioner/Config.h>
 
+#include <boost/filesystem.hpp>
 #include <cstdlib>
 #include <grp.h>
 #include <iomanip>
@@ -23,7 +24,7 @@ extern "C" int lchown(const char *pathname, uid_t owner, gid_t group) {
   return 0;
 }
 
-bool check_lchown(unsigned int idx, std::string const &path_suffix,
+bool check_lchown(unsigned int idx, std::string const &path,
                   uid_t owner, gid_t group) {
   bool ret = true;
   if (idx > logs_lchown.size()) {
@@ -31,11 +32,10 @@ bool check_lchown(unsigned int idx, std::string const &path_suffix,
     return false;
   }
   LogLchown const & log_lchown = logs_lchown.at(idx);
-  std::string pn = log_lchown.pathname;
-  if (pn.length() < path_suffix.length() ||
-      pn.substr(pn.length() - path_suffix.length()) != path_suffix) {
-    std::cerr << "lchown call #" << idx << ": unexpcted path \""
-              << pn << "\" != ...\"" << path_suffix << "\"" << std::endl;
+  if (log_lchown.pathname != path) {
+    std::cerr << "lchown call #" << idx << ": unexpected path \""
+              << log_lchown.pathname << "\" != ...\"" << path << "\""
+              << std::endl;
     ret = false;
   }
   if (log_lchown.owner != owner) {
@@ -63,19 +63,17 @@ extern "C" int chmod(const char *pathname, mode_t mode) {
   return 0;
 }
 
-bool check_chmod(unsigned int idx, std::string const &path_suffix,
-                 mode_t mode) {
+bool check_chmod(unsigned int idx, std::string const &path, mode_t mode) {
   bool ret = true;
   if (idx > logs_chmod.size()) {
     std::cerr << "no such chmod call #" << idx << std::endl;
     return false;
   }
   LogChmod const & log_chmod = logs_chmod.at(idx);
-  std::string pn = log_chmod.pathname;
-  if (pn.length() < path_suffix.length() ||
-      pn.substr(pn.length() - path_suffix.length()) != path_suffix) {
-    std::cerr << "chmod call #" << idx << ": unexpcted path \""
-              << pn << "\" != ...\"" << path_suffix << "\"" << std::endl;
+  if (log_chmod.pathname != path) {
+    std::cerr << "chmod call #" << idx << ": unexpected path \""
+              << log_chmod.pathname << "\" != ...\"" << path << "\""
+              << std::endl;
     ret = false;
   }
   if (log_chmod.mode != mode) {
@@ -87,13 +85,14 @@ bool check_chmod(unsigned int idx, std::string const &path_suffix,
   return ret;
 }
 
-bool check(unsigned int idx, std::string const &path_suffix,
+bool check(unsigned int idx, std::string const &rel_path,
            uid_t owner, gid_t group, mode_t mode) {
   bool ret = true;
-  if (! check_lchown(idx, path_suffix, owner, group)) {
+  std::string path = boost::filesystem::canonical(rel_path).string();
+  if (! check_lchown(idx, path, owner, group)) {
     ret = false;
   }
-  if (! check_chmod(idx, path_suffix, mode)) {
+  if (! check_chmod(idx, path, mode)) {
     ret = false;
   }
   return ret;
