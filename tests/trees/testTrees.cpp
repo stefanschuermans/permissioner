@@ -6,6 +6,7 @@
 #include <iomanip>
 #include <iostream>
 #include <pwd.h>
+#include <string>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>

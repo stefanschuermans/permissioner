@@ -38,6 +38,7 @@ void Group::parseGroupName(std::string const &groupNameStr) {
     throw std::runtime_error(msg.str());
   }
 
+  groupName = gr->gr_name;
   gid = gr->gr_gid;
 }
 

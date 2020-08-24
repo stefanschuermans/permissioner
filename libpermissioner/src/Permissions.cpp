@@ -23,7 +23,7 @@ void Permissions::parseParams(std::string const &paramStr) {
           set = who * what;
           setCond = who * whatCond;
           clear = who * (what ^ (flagRead | flagWrite | flagExecute));
-          clearCond = who * (what ^ flagExecute);
+          clearCond = 0;
           break;
         case '+':
           set = who * what;

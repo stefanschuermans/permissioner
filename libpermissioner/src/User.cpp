@@ -38,6 +38,7 @@ void User::parseUserName(std::string const &userNameStr) {
     throw std::runtime_error(msg.str());
   }
 
+  userName = pw->pw_name;
   uid = pw->pw_uid;
 }
 
