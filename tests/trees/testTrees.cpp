@@ -1,21 +1,102 @@
 #include <permissioner/Config.h>
 
 #include <cstdlib>
-#include <iostream> // DEBUG
-#include <unistd.h>
+#include <grp.h>
+#include <iomanip>
+#include <iostream>
+#include <pwd.h>
 #include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
+#include <vector>
+
+struct LogLchown {
+  std::string pathname;
+  uid_t owner;
+  gid_t group;
+};
+std::vector<LogLchown> logs_lchown;
 
 // mock version of lchown, to see if right files get right owners
 extern "C" int lchown(const char *pathname, uid_t owner, gid_t group) {
-  std::cout << "DEBUG lchown " << pathname << " owner " << owner
-            << " group " << group << std::endl;
+  logs_lchown.emplace_back(LogLchown { pathname, owner, group });
   return 0;
 }
 
-// mock version fo chmod, to see if right files get right permissions
+bool check_lchown(unsigned int idx, std::string const &path_suffix,
+                  uid_t owner, gid_t group) {
+  bool ret = true;
+  if (idx > logs_lchown.size()) {
+    std::cerr << "no such lchown call #" << idx << std::endl;
+    return false;
+  }
+  LogLchown const & log_lchown = logs_lchown.at(idx);
+  std::string pn = log_lchown.pathname;
+  if (pn.length() < path_suffix.length() ||
+      pn.substr(pn.length() - path_suffix.length()) != path_suffix) {
+    std::cerr << "lchown call #" << idx << ": unexpcted path \""
+              << pn << "\" != ...\"" << path_suffix << "\"" << std::endl;
+    ret = false;
+  }
+  if (log_lchown.owner != owner) {
+    std::cerr << "lchown call #" << idx << ": unexpected owner "
+              << log_lchown.owner << " != " << owner << std::endl;
+    ret = false;
+  }
+  if (log_lchown.group != group) {
+    std::cerr << "lchown call #" << idx << ": unexpected group "
+              << log_lchown.group << " != " << group << std::endl;
+    ret = false;
+  }
+  return ret;
+}
+
+struct LogChmod {
+  std::string pathname;
+  mode_t mode;
+};
+std::vector<LogChmod> logs_chmod;
+
+// mock version of chmod, to see if right files get right permissions
 extern "C" int chmod(const char *pathname, mode_t mode) {
-  std::cout << "DEBUG chmod " << pathname << " mode " << mode << std::endl;
+  logs_chmod.emplace_back(LogChmod { pathname, mode });
   return 0;
+}
+
+bool check_chmod(unsigned int idx, std::string const &path_suffix,
+                 mode_t mode) {
+  bool ret = true;
+  if (idx > logs_chmod.size()) {
+    std::cerr << "no such chmod call #" << idx << std::endl;
+    return false;
+  }
+  LogChmod const & log_chmod = logs_chmod.at(idx);
+  std::string pn = log_chmod.pathname;
+  if (pn.length() < path_suffix.length() ||
+      pn.substr(pn.length() - path_suffix.length()) != path_suffix) {
+    std::cerr << "chmod call #" << idx << ": unexpcted path \""
+              << pn << "\" != ...\"" << path_suffix << "\"" << std::endl;
+    ret = false;
+  }
+  if (log_chmod.mode != mode) {
+    std::cerr << "chmod call #" << idx << ": unexpected mode "
+              << std::oct << log_chmod.mode << " != " << mode
+              << std::dec << std::endl;
+    ret = false;
+  }
+  return ret;
+}
+
+bool check(unsigned int idx, std::string const &path_suffix,
+           uid_t owner, gid_t group, mode_t mode) {
+  bool ret = true;
+  if (! check_lchown(idx, path_suffix, owner, group)) {
+    ret = false;
+  }
+  if (! check_chmod(idx, path_suffix, mode)) {
+    ret = false;
+  }
+  return ret;
 }
 
 int main(int argc, char const **argv) {
@@ -23,5 +104,35 @@ int main(int argc, char const **argv) {
   Config config;
   config.parseFile(argv[1]);
   config.setPermissions();
-  return EXIT_SUCCESS;
+
+  int ret = EXIT_SUCCESS;
+
+  uid_t nobody = getpwnam("nobody")->pw_uid;
+  gid_t nogroup = getgrnam("nogroup")->gr_gid;
+
+  if (! check(0, "work", nobody, nogroup, 0775)) {
+    ret = EXIT_FAILURE;
+  }
+  if (! check(1, "work/file", nobody, nogroup, 0664)) {
+    ret = EXIT_FAILURE;
+  }
+  if (! check(2, "work/nested", -1, -1, 0757)) {
+    ret = EXIT_FAILURE;
+  }
+  if (! check(3, "work/nested/other", -1, -1, 0646)) {
+    ret = EXIT_FAILURE;
+  }
+  unsigned int size = 4;
+  if (logs_lchown.size() != size) {
+    std::cerr << "unexpected size of logs_lchown: " << logs_lchown.size()
+              << " != " << size << std::endl;
+    ret = EXIT_FAILURE;
+  }
+  if (logs_chmod.size() != size) {
+    std::cerr << "unexpected size of logs_chmod: " << logs_chmod.size()
+              << " != " << size << std::endl;
+    ret = EXIT_FAILURE;
+  }
+
+  return ret;
 }
