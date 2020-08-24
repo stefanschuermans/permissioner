@@ -105,6 +105,22 @@ void Permissions::apply(boost::filesystem::path const &path) const {
   }
 }
 
+Permissions::Flags Permissions::getSet() const {
+  return set;
+}
+
+Permissions::Flags Permissions::getSetCond() const {
+  return setCond;
+}
+
+Permissions::Flags Permissions::getClear() const {
+  return clear;
+}
+
+Permissions::Flags Permissions::getClearCond() const {
+  return clearCond;
+}
+
 boost::filesystem::perms Permissions::flags2perms(Flags flags) {
   using fsp = boost::filesystem::perms;
   fsp perms = fsp::no_perms;
@@ -119,4 +135,3 @@ boost::filesystem::perms Permissions::flags2perms(Flags flags) {
   if (flags & (flagOther * flagExecute)) { perms |= fsp::others_exe; }
   return perms;
 }
-

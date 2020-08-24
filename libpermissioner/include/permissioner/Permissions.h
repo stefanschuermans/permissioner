@@ -30,6 +30,18 @@ public:
    */
   void apply(boost::filesystem::path const &path) const;
 
+  /// return permissions to set
+  Flags getSet() const;
+
+  /// return permissions to set conditionally on usrexec/dir
+  Flags getSetCond() const;
+
+  /// return permissions to clear
+  Flags getClear() const;
+
+  /// return permissions to clear conditionally on usrexec/dir
+  Flags getClearCond() const;
+
 protected:
   /// convert flags into boost filesystem permissions
   static boost::filesystem::perms flags2perms(Flags flags);
