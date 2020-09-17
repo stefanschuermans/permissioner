@@ -28,5 +28,6 @@ add_custom_target(
 )
 
 add_subdirectory(libpermissioner)
+add_subdirectory(permissionerc)
 add_subdirectory(permissionerd)
 add_subdirectory(tests)
