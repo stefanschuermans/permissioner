@@ -1,3 +1,9 @@
+/**
+ * Permissioner: set file ownerships and permissions
+ * Copyright 2020: Stefan Schuermans, Aachen, Germany <stefan@schuermans.info>
+ * Copyleft: GNU GENERAL PUBLIC LICENSE version 3 (see LICENSE)
+ */
+
 #include <permissioner/Config.h>
 #include <permissioner/Group.h>
 #include <permissioner/Permissions.h>
