@@ -36,6 +36,10 @@ void Config::parseFile(std::string const &configFileName) {
       continue; // comment line -> ignore
     }
     // actual configuration lines
+    if (typeStr == "nice") {
+      nice.parseParams(line.substr(pos));
+      continue;
+    }
     if (typeStr == "tree") {
       Tree tree;
       tree.parseParams(line.substr(pos));
@@ -47,6 +51,10 @@ void Config::parseFile(std::string const &configFileName) {
     msg << "unknown configuration type \"" << typeStr << "\"";
     throw std::runtime_error(msg.str());
   }
+}
+
+Nice const & Config::getNice() const {
+  return nice;
 }
 
 TreeMap const & Config::getTrees() const {

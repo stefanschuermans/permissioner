@@ -93,31 +93,37 @@ The configuration file lists directory trees and the ownerships and permissions
 to set for them. If some of the specified trees are nested within each other,
 the nested tree(s) is/are excluded from the containing tree(s).
 
-The syntax of the config file is line-based. Each line defines a directory tree
-and the ownerships and permissions.
+The syntax of the config file is line-based. Each line defines a setting or a
+directory tree and the ownerships and permissions for it.
 
 Syntax:
 
-* Each line: `tree <user> <group> <permissions> <directory>`
-* `<user>`: User name to set as user/owner, `-` to not change the user/owner.
-* `<group>`: Group name to set as group, `-` to not change the group.
-* `<permissions>`: Comma-separated list of permission settings.
-   * `<perm setting>[,<perm setting>[,<...>]]`
-* `<perm setting>`: Setting (`=`), adding (`+`) or removing (`-`) permissions.
-   * `<who>[=+-]<what>`
-* `<who>`: For whom to change the permissions. Any combination of:
-   * `u`: User.
-   * `g`: Group.
-   * `o`: Others.
-* `<what>`: Which permissions to change.
-   * `r`: Reading.
-   * `w`: Writing.
-   * `x`: Executing for files, browsing for directories.
-   * `X`: Like `x` if `x` set for user/owner of the file.
-* `<directory>`: Absolute or relative directory name.
-   * Defines the base of a directory tree to process.
-   * Relative directory names are relative to the woking directory of
-     `permissionerc` or `permissionerd`.
+   * process nice-ness (only for `permissionerd`, ignored by `permissonerc`)
+     `nice [<niceness value>] [idle]
+      * `<niceness value>`: Linux niceness value for daemon process,
+                            `19` for nicest (lowest CPU priority)
+      * `idle`: set I/O priority class to idle
+   * owership and permission configuration:
+     `tree <user> <group> <permissions> <directory>`
+      * `<user>`: User name to set as user/owner, `-` to not change the user/owner.
+      * `<group>`: Group name to set as group, `-` to not change the group.
+      * `<permissions>`: Comma-separated list of permission settings.
+         * `<perm setting>[,<perm setting>[,<...>]]`
+      * `<perm setting>`: Setting (`=`), adding (`+`) or removing (`-`) permissions.
+         * `<who>[=+-]<what>`
+      * `<who>`: For whom to change the permissions. Any combination of:
+         * `u`: User.
+         * `g`: Group.
+         * `o`: Others.
+      * `<what>`: Which permissions to change.
+         * `r`: Reading.
+         * `w`: Writing.
+         * `x`: Executing for files, browsing for directories.
+         * `X`: Like `x` if `x` set for user/owner of the file.
+      * `<directory>`: Absolute or relative directory name.
+         * Defines the base of a directory tree to process.
+         * Relative directory names are relative to the woking directory of
+           `permissionerc` or `permissionerd`.
 
 Example:
 

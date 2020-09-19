@@ -7,6 +7,7 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
+#include <permissioner/Nice.h>
 #include <permissioner/Tree.h>
 
 #include <boost/filesystem.hpp>
@@ -23,6 +24,9 @@ public:
    */
   void parseFile(std::string const &configFileName);
 
+  /// return nice settings
+  Nice const & getNice() const;
+
   /// return trees
   TreeMap const & getTrees() const;
 
@@ -32,6 +36,7 @@ public:
   void setPermissions() const;
 
 protected:
+  Nice nice;
   TreeMap trees;
 };
 

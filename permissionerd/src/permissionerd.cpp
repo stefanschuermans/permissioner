@@ -45,6 +45,9 @@ int main(int argc, char const **argv) {
   std::cout << "permissionerd (" << configFileName << ") starting"
             << std::endl;
 
+  // set nicecess of process
+  config.getNice().apply();
+
   // continuously set ownership and permissions
   int ret = EXIT_SUCCESS;
   while (go_on) {
