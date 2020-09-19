@@ -7,6 +7,7 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
+#include <permissioner/Callback.h>
 #include <permissioner/Nice.h>
 #include <permissioner/Tree.h>
 
@@ -32,8 +33,10 @@ public:
 
   /**
    * @brief set owners and permissions of files in trees
+   * @param[in] callback callback object to call after each processed file
+   * @return whether traversal was completed (false means aborted)
    */
-  void setPermissions() const;
+  bool setPermissions(Callback &callback) const;
 
 protected:
   Nice nice;

@@ -4,6 +4,7 @@
  * Copyleft: GNU GENERAL PUBLIC LICENSE version 3 (see LICENSE)
  */
 
+#include <permissioner/Callback.h>
 #include <permissioner/Config.h>
 
 #include <cstdlib>
@@ -21,7 +22,8 @@ int main(int argc, char const **argv) {
   try {
     Config config;
     config.parseFile(configFileName);
-    config.setPermissions();
+    Callback callback;
+    config.setPermissions(callback);
   } catch (std::exception const &e) {
     std::cerr << "error: " << e.what() << std::endl;
     return EXIT_FAILURE;

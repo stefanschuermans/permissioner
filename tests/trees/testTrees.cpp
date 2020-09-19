@@ -4,6 +4,7 @@
  * Copyleft: GNU GENERAL PUBLIC LICENSE version 3 (see LICENSE)
  */
 
+#include <permissioner/Callback.h>
 #include <permissioner/Config.h>
 
 #include <boost/filesystem.hpp>
@@ -109,7 +110,8 @@ int main(int argc, char const **argv) {
   (void)argc;
   Config config;
   config.parseFile(argv[1]);
-  config.setPermissions();
+  Callback callback;
+  config.setPermissions(callback);
 
   int ret = EXIT_SUCCESS;
 

@@ -6,10 +6,11 @@
 
 #include <permissioner/Tree.h>
 
+#include <permissioner/Callback.h>
 #include <permissioner/Group.h>
 #include <permissioner/Permissions.h>
-#include <permissioner/User.h>
 #include <permissioner/StringUtils.h>
+#include <permissioner/User.h>
 
 #include <boost/filesystem.hpp>
 #include <sstream>
@@ -36,25 +37,25 @@ void Tree::parseParams(std::string const &paramStr) {
 
   try {
     user.parseUserName(userStr);
-  } catch (std::exception const & e) {
+  } catch (std::exception const &e) {
     std::stringstream msg;
-    msg << "invalid <user> field \"" << userStr << "\" in \""
-        << paramStr << "\": " << e.what();
+    msg << "invalid <user> field \"" << userStr << "\" in \"" << paramStr
+        << "\": " << e.what();
     throw std::runtime_error(msg.str());
   }
 
   try {
     group.parseGroupName(groupStr);
-  } catch (std::exception const & e) {
+  } catch (std::exception const &e) {
     std::stringstream msg;
-    msg << "invalid <group> field \"" << groupStr << "\" in \""
-        << paramStr << "\": " << e.what();
+    msg << "invalid <group> field \"" << groupStr << "\" in \"" << paramStr
+        << "\": " << e.what();
     throw std::runtime_error(msg.str());
   }
 
   try {
     permissions.parseParams(permissionsStr);
-  } catch (std::exception const & e) {
+  } catch (std::exception const &e) {
     std::stringstream msg;
     msg << "invalid <permissions> field \"" << permissionsStr << "\" in \""
         << paramStr << "\": " << e.what();
@@ -63,60 +64,63 @@ void Tree::parseParams(std::string const &paramStr) {
 
   try {
     root = boost::filesystem::canonical(rootStr);
-  } catch (std::exception const & e) {
+  } catch (std::exception const &e) {
     std::stringstream msg;
-    msg << "invalid <root> field \"" << rootStr << "\" in \""
-        << paramStr << "\": " << e.what();
+    msg << "invalid <root> field \"" << rootStr << "\" in \"" << paramStr
+        << "\": " << e.what();
     throw std::runtime_error(msg.str());
   }
 }
 
-User const & Tree::getUser() const {
-  return user;
+User const &Tree::getUser() const { return user; }
+
+Group const &Tree::getGroup() const { return group; }
+
+Permissions const &Tree::getPermissions() const { return permissions; }
+
+boost::filesystem::path const &Tree::getRoot() const { return root; }
+
+bool Tree::setPermissions(TreeMap const &exclude,
+                          Callback &callback) const {
+  return setPermissionsInternal(root, exclude, callback);
 }
 
-Group const & Tree::getGroup() const {
-  return group;
-}
-
-Permissions const & Tree::getPermissions() const {
-  return permissions;
-}
-
-boost::filesystem::path const & Tree::getRoot() const {
-  return root;
-}
-
-void Tree::setPermissions(TreeMap const &exclude) const {
-  setPermissionsInternal(root, exclude);
-}
-
-void Tree::setPermissionsInternal(boost::filesystem::path const &path,
-                                  TreeMap const &exclude) const {
+bool Tree::setPermissionsInternal(boost::filesystem::path const &path,
+                                  TreeMap const &exclude,
+                                  Callback &callback) const {
   try {
     if (boost::filesystem::is_regular_file(path)) {
-      setPermissionsOne(path);
+      if (!setPermissionsOne(path, callback)) {
+        return false;
+      };
     } else if (boost::filesystem::is_directory(path)) {
-      setPermissionsOne(path);
+      if (!setPermissionsOne(path, callback)) {
+        return false;
+      };
       for (boost::filesystem::directory_entry entry :
            boost::filesystem::directory_iterator(path)) {
         if (exclude.find(entry) != exclude.end()) {
           continue; // other tree -> skip here
         }
-        setPermissionsInternal(entry, exclude); // recurse
+        // recurse
+        if (!setPermissionsInternal(entry, exclude, callback)) {
+          return false;
+        }
       }
     }
-  } catch (boost::filesystem::filesystem_error const & e) {
+  } catch (boost::filesystem::filesystem_error const &e) {
     // ignore filesystem errors for now, as this runs in a daemon in background
     (void)e;
   }
+  return true;
 }
 
-void Tree::setPermissionsOne(boost::filesystem::path const &path) const {
+bool Tree::setPermissionsOne(boost::filesystem::path const &path,
+                             Callback &callback) const {
   // change permissions
   try {
     permissions.apply(path);
-  } catch (boost::filesystem::filesystem_error const & e) {
+  } catch (boost::filesystem::filesystem_error const &e) {
     // ignore filesystem errors for now, as this runs in a daemon in background
     (void)e;
   }
@@ -125,4 +129,7 @@ void Tree::setPermissionsOne(boost::filesystem::path const &path) const {
   int ret = lchown(path.string().c_str(), user.getUid(), group.getGid());
   // ignore error for now, as this runs in a daemon in background
   (void)ret;
+
+  // call callback and return whether to continue
+  return callback.callback();
 }

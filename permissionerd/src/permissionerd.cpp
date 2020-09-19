@@ -4,6 +4,7 @@
  * Copyleft: GNU GENERAL PUBLIC LICENSE version 3 (see LICENSE)
  */
 
+#include <permissioner/Callback.h>
 #include <permissioner/Config.h>
 
 #include <chrono>
@@ -14,10 +15,32 @@
 #include <string>
 #include <thread>
 
-static int go_on = 1;
+class DaemonCallback : public Callback {
+public:
+  DaemonCallback() : go_on(true) {}
+  bool callback() { return go_on; }
+  bool go_on;
+};
 
-void sighandler(int) {
-  go_on = 0;
+DaemonCallback daemonCallback;
+
+void sighandler(int) { daemonCallback.go_on = false; }
+
+// iterative sleep, watching go_on, returns whether sleep completed
+template <class Rep, class Period>
+bool iterativeSleep(std::chrono::duration<Rep, Period> duration,
+                    DaemonCallback &daemonCallback) {
+  std::chrono::duration<int, std::milli> zero(0), step(100);
+  while (duration > zero && daemonCallback.go_on) {
+    if (duration >= step) {
+      std::this_thread::sleep_for(step);
+      duration -= step;
+    } else {
+      std::this_thread::sleep_for(duration);
+      duration = zero;
+    }
+  }
+  return duration <= zero;
 }
 
 int main(int argc, char const **argv) {
@@ -42,22 +65,23 @@ int main(int argc, char const **argv) {
   signal(SIGQUIT, sighandler);
   signal(SIGTERM, sighandler);
 
-  std::cout << "permissionerd (" << configFileName << ") starting"
-            << std::endl;
+  std::cout << "permissionerd (" << configFileName << ") starting" << std::endl;
 
   // set nicecess of process
   config.getNice().apply();
 
   // continuously set ownership and permissions
   int ret = EXIT_SUCCESS;
-  while (go_on) {
+  while (daemonCallback.go_on) {
 
-    // set owneship and permissions, measure time it takes
+    // set ownership and permissions, measure time it takes
     std::cout << "permissionerd (" << configFileName
               << "): setting ownership and permissions" << std::endl;
     auto begin = std::chrono::steady_clock::now();
     try {
-      config.setPermissions();
+      if (! config.setPermissions(daemonCallback)) {
+        break;
+      }
     } catch (std::exception const &e) {
       std::cerr << "error: " << e.what() << std::endl;
       ret = EXIT_FAILURE;
@@ -69,11 +93,13 @@ int main(int argc, char const **argv) {
               << duration.count() << " s" << std::endl;
 
     // sleep 10 times as long as the work took plus one second
-    auto sleep_time = 10 * duration
-                    + std::chrono::duration<int, std::ratio<1>>(1);
-    std::this_thread::sleep_for(sleep_time);
+    auto sleep_time =
+        10 * duration + std::chrono::duration<int, std::ratio<1>>(1);
+    if (! iterativeSleep(sleep_time, daemonCallback)) {
+      break;
+    }
 
-  } // while (go_on)
+  } // while (daemonCallback.go_on)
 
   std::cout << "permissionerd (" << configFileName << ") shutting down"
             << std::endl;

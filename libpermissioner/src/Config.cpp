@@ -5,8 +5,9 @@
  */
 
 #include <permissioner/Config.h>
-#include <permissioner/StringUtils.h>
 
+#include <permissioner/Callback.h>
+#include <permissioner/StringUtils.h>
 #include <permissioner/Tree.h>
 
 #include <boost/filesystem.hpp>
@@ -61,9 +62,12 @@ TreeMap const & Config::getTrees() const {
   return trees;
 }
 
-void Config::setPermissions() const {
+bool Config::setPermissions(Callback &callback) const {
   for (auto const & path_tree : trees) {
     Tree const & tree = path_tree.second;
-    tree.setPermissions(trees); // exclude all other trees
+    if (! tree.setPermissions(trees, callback)) { // exclude all other trees
+      return false;
+    }
   }
+  return true;
 }

@@ -1,6 +1,7 @@
 add_library(
   permissioner
   STATIC
+  include/permissioner/Callback.h
   include/permissioner/Config.h
   include/permissioner/Group.h
   include/permissioner/Nice.h
@@ -8,6 +9,7 @@ add_library(
   include/permissioner/StringUtils.h
   include/permissioner/Tree.h
   include/permissioner/User.h
+  src/Callback.cpp
   src/Config.cpp
   src/Group.cpp
   src/Nice.cpp
