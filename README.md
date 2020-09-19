@@ -103,6 +103,14 @@ Syntax:
       * `<niceness value>`: Linux niceness value for daemon process,
                             `19` for nicest (lowest CPU priority)
       * `idle`: set I/O priority class to idle
+   * sleep time after each file: `sleepTime <seconds>`
+      * range 0 - 1 s, default 1e-6 s
+   * wait time factor: `waitFactor <floating-point factor>`
+      * how long to wait after each tree traversal relative to the duration of
+        the traversal
+      * range 0 - 1000, default 10
+   * additional wait time after each tree traversal: `waitTime <seconds>`
+      * range 0 - 3600 s, default 1 s
    * owership and permission configuration:
      `tree <user> <group> <permissions> <directory>`
       * `<user>`: User name to set as user/owner, `-` to not change the user/owner.

@@ -52,7 +52,32 @@ int StringUtils::str2intRange(std::string const &str, int minVal, int maxVal,
   long val = str2long(str, name);
   if (val < minVal || val > maxVal) {
     std::stringstream msg;
-    msg << "value " << val << "of <" << name << "> field out of range "
+    msg << "value " << val << " of <" << name << "> field out of range "
+        << minVal << " - " << maxVal;
+    throw std::runtime_error(msg.str());
+  }
+  return val;
+}
+
+float StringUtils::str2float(std::string const &str, std::string const &name) {
+  char const *c_str = str.c_str();
+  char *end;
+  float val = strtof(c_str, &end);
+  if (end == c_str || *end != 0) {
+    std::stringstream msg;
+    msg << "invalid floating-point value \"" << str << "\" for <" << name
+        << "> field";
+    throw std::runtime_error(msg.str());
+  }
+  return val;
+}
+
+float StringUtils::str2floatRange(std::string const &str, float minVal,
+                                  float maxVal, std::string const &name) {
+  float val = str2float(str, name);
+  if (val < minVal || val > maxVal) {
+    std::stringstream msg;
+    msg << "value " << val << " of <" << name << "> field out of range "
         << minVal << " - " << maxVal;
     throw std::runtime_error(msg.str());
   }

@@ -18,20 +18,24 @@
 class DaemonCallback : public Callback {
 public:
   DaemonCallback() : go_on(true) {}
-  bool callback() { return go_on; }
+  bool callback();
+  std::chrono::duration<float, std::ratio<1>> sleepTime;
+  template <class Rep, class Period>
+  bool iterativeSleep(std::chrono::duration<Rep, Period> duration) const;
   bool go_on;
 };
 
-DaemonCallback daemonCallback;
-
-void sighandler(int) { daemonCallback.go_on = false; }
+bool DaemonCallback::callback() {
+  iterativeSleep(sleepTime);
+  return go_on;
+}
 
 // iterative sleep, watching go_on, returns whether sleep completed
 template <class Rep, class Period>
-bool iterativeSleep(std::chrono::duration<Rep, Period> duration,
-                    DaemonCallback &daemonCallback) {
-  std::chrono::duration<int, std::milli> zero(0), step(100);
-  while (duration > zero && daemonCallback.go_on) {
+bool DaemonCallback::iterativeSleep(
+    std::chrono::duration<Rep, Period> duration) const {
+  const std::chrono::duration<int, std::milli> zero(0), step(100);
+  while (duration > zero && go_on) {
     if (duration >= step) {
       std::this_thread::sleep_for(step);
       duration -= step;
@@ -42,6 +46,10 @@ bool iterativeSleep(std::chrono::duration<Rep, Period> duration,
   }
   return duration <= zero;
 }
+
+DaemonCallback daemonCallback;
+
+void sighandler(int) { daemonCallback.go_on = false; }
 
 int main(int argc, char const **argv) {
   if (argc != 2) {
@@ -59,6 +67,13 @@ int main(int argc, char const **argv) {
     return EXIT_FAILURE;
   }
 
+  // get timing from config
+  std::chrono::duration<float, std::ratio<1>> sleepTime(
+      config.getSleepTime().get());
+  float waitFactor = config.getWaitFactor().get();
+  std::chrono::duration<float, std::ratio<1>> waitTime(
+      config.getWaitTime().get());
+
   // catch signals to exit properly on Ctrl-C and so on
   signal(SIGINT, sighandler);
   signal(SIGPIPE, sighandler);
@@ -70,6 +85,9 @@ int main(int argc, char const **argv) {
   // set nicecess of process
   config.getNice().apply();
 
+  // set sleep time after each file in daemon callback
+  daemonCallback.sleepTime = sleepTime;
+
   // continuously set ownership and permissions
   int ret = EXIT_SUCCESS;
   while (daemonCallback.go_on) {
@@ -79,7 +97,7 @@ int main(int argc, char const **argv) {
               << "): setting ownership and permissions" << std::endl;
     auto begin = std::chrono::steady_clock::now();
     try {
-      if (! config.setPermissions(daemonCallback)) {
+      if (!config.setPermissions(daemonCallback)) {
         break;
       }
     } catch (std::exception const &e) {
@@ -92,10 +110,8 @@ int main(int argc, char const **argv) {
     std::cout << "permissionerd (" << configFileName << "): took "
               << duration.count() << " s" << std::endl;
 
-    // sleep 10 times as long as the work took plus one second
-    auto sleep_time =
-        10 * duration + std::chrono::duration<int, std::ratio<1>>(1);
-    if (! iterativeSleep(sleep_time, daemonCallback)) {
+    // wait after tree traversal
+    if (!daemonCallback.iterativeSleep(waitFactor * duration + waitTime)) {
       break;
     }
 

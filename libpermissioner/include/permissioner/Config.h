@@ -8,6 +8,7 @@
 #define CONFIG_H
 
 #include <permissioner/Callback.h>
+#include <permissioner/Float.h>
 #include <permissioner/Nice.h>
 #include <permissioner/Tree.h>
 
@@ -18,6 +19,8 @@
 /// configuration file
 class Config {
 public:
+  Config();
+
   /**
    * @brief parse configuration file
    * @param[in] configFileName name of configuation file
@@ -27,6 +30,15 @@ public:
 
   /// return nice settings
   Nice const & getNice() const;
+
+  /// return sleep time setting
+  Float const & getSleepTime() const;
+
+  /// return wait factor setting
+  Float const & getWaitFactor() const;
+
+  /// return wait time setting
+  Float const & getWaitTime() const;
 
   /// return trees
   TreeMap const & getTrees() const;
@@ -40,6 +52,9 @@ public:
 
 protected:
   Nice nice;
+  Float sleepTime;
+  Float waitFactor;
+  Float waitTime;
   TreeMap trees;
 };
 

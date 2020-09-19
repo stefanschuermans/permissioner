@@ -34,6 +34,25 @@ int testEmpty() {
     ret = EXIT_FAILURE;
   }
 
+  float sleepTime = config.getSleepTime().get();
+  if (sleepTime != 1.0e-6f) {
+    std::cerr << "unexpected sleepTime " << sleepTime << ", expected "
+              << 1.0e-6f << std::endl;
+    ret = EXIT_FAILURE;
+  }
+  float waitFactor = config.getWaitFactor().get();
+  if (waitFactor != 10.0f) {
+    std::cerr << "unexpected waitFactor " << waitFactor << ", expected "
+              << 10.0f << std::endl;
+    ret = EXIT_FAILURE;
+  }
+  float waitTime = config.getWaitTime().get();
+  if (waitTime != 1.0f) {
+    std::cerr << "unexpected waitTime " << waitTime << ", expected " << 1.0f
+              << std::endl;
+    ret = EXIT_FAILURE;
+  }
+
   TreeMap const &treeMap = config.getTrees();
   if (treeMap.size() != 0) {
     std::cerr << "unexpected trees: " << treeMap.size() << std::endl;
@@ -98,6 +117,34 @@ int testNice() {
         ret = EXIT_FAILURE;
       }
     }
+  }
+
+  return ret;
+}
+
+int testSleepWait() {
+  Config config;
+  config.parseFile("sleep_wait.cfg");
+
+  int ret = EXIT_SUCCESS;
+
+  float sleepTime = config.getSleepTime().get();
+  if (sleepTime != 42.42e-3f) {
+    std::cerr << "unexpected sleepTime " << sleepTime << ", expected "
+              << 42.42e-3f << std::endl;
+    ret = EXIT_FAILURE;
+  }
+  float waitFactor = config.getWaitFactor().get();
+  if (waitFactor != 5.5f) {
+    std::cerr << "unexpected waitFactor " << waitFactor << ", expected "
+              << 5.5f << std::endl;
+    ret = EXIT_FAILURE;
+  }
+  float waitTime = config.getWaitTime().get();
+  if (waitTime != 23.23f) {
+    std::cerr << "unexpected waitTime " << waitTime << ", expected " << 23.23f
+              << std::endl;
+    ret = EXIT_FAILURE;
   }
 
   return ret;
@@ -195,6 +242,7 @@ int main() {
   int ret = EXIT_SUCCESS;
   merge_ret(ret, testEmpty());
   merge_ret(ret, testNice());
+  merge_ret(ret, testSleepWait());
   merge_ret(ret, testTrees());
   return ret;
 }

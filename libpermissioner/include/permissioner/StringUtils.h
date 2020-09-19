@@ -42,6 +42,27 @@ public:
    */
   static int str2intRange(std::string const &str, int minVal, int maxVal,
                           std::string const &name);
+
+  /**
+   * @brief convert a string to a floating-point value
+   * @param[in] str string on which to operate
+   * @param[in] name filed name for exception
+   * @return floating-point value
+   * @throws std::exception if something goes wrong
+   */
+  static float str2float(std::string const &str, std::string const &name);
+
+  /**
+   * @brief convert a string to a floating-point value and check range
+   * @param[in] str string on which to operate
+   * @param[in] minVal minium value
+   * @param[in] maxVal maxium value
+   * @param[in] name filed name for exception
+   * @return floating-point value
+   * @throws std::exception if something goes wrong
+   */
+  static float str2floatRange(std::string const &str, float minVal,
+                              float maxVal, std::string const &name);
 };
 
 #endif // #ifndef STRING_UTILS_H

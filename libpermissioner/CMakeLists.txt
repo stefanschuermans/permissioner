@@ -3,6 +3,7 @@ add_library(
   STATIC
   include/permissioner/Callback.h
   include/permissioner/Config.h
+  include/permissioner/Float.h
   include/permissioner/Group.h
   include/permissioner/Nice.h
   include/permissioner/Permissions.h
@@ -11,6 +12,7 @@ add_library(
   include/permissioner/User.h
   src/Callback.cpp
   src/Config.cpp
+  src/Float.cpp
   src/Group.cpp
   src/Nice.cpp
   src/Permissions.cpp
