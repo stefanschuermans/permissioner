@@ -122,6 +122,7 @@ void Tree::setPermissionsOne(boost::filesystem::path const &path) const {
   }
 
   // change owner/group
-  lchown(path.string().c_str(), user.getUid(), group.getGid());
+  int ret = lchown(path.string().c_str(), user.getUid(), group.getGid());
   // ignore error for now, as this runs in a daemon in background
+  (void)ret;
 }
